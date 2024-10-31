@@ -1,9 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const auth = require('../middleware/auth');
 
-// Get all users
-router.get('/', async (req, res) => {
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []  
+ *     responses:
+ *       200:
+ *         description: A list of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User' 
+ *       500:
+ *         description: Server error
+ */
+router.get('/', auth, async (req, res) => {
    try {
       const users = await User.find();
       res.json(users);
@@ -12,8 +32,34 @@ router.get('/', async (req, res) => {
    }
 });
 
-//Get user by Id
-router.get('/:id', async (req, res) => {
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []  
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the user
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User' 
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', auth, async (req, res) => {
 
     const userid = req.params.id;
     try {
@@ -24,23 +70,30 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Create a new user
-router.post('/', async (req, res) => {
-   const user = new User({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-   });
-   try {
-      const newUser = await user.save();
-      res.status(201).json(newUser);
-   } catch (err) {
-      res.status(400).json({ message: err.message });
-   }
-});
-
-// Delete activity by id
-router.delete('/:id', async (req, res) => {
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user by ID (soft delete)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the user to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Successfully deleted user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/:id', auth, async (req, res) => {
     try {
         // Search the activity by id 
         const user = await User.findById(req.params.id);
